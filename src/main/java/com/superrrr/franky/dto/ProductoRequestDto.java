@@ -1,7 +1,7 @@
 package com.superrrr.franky.dto;
 
-import com.superrrr.franky.enums.EstadoProducto;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,6 +18,6 @@ public class ProductoRequestDto {
 
     private String categoria;
 
-    @NotBlank(message = "Precio del producto es requerido")
+    @NotNull(message = "Precio del producto es requerido")
     private BigDecimal precio;
 }
