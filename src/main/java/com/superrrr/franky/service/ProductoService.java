@@ -32,7 +32,7 @@ public class ProductoService {
     }
 
     public ProductoResponseDto actualizarProducto(Long id, ProductoRequestDto productoRequestDto) {
-        Producto producto = productoRepository.findById(id)
+        Producto producto = productoRepository.findByIdAndEstadoProductoNot(id, EstadoProducto.ELIMINADO)
                 .orElseThrow(() -> new ProductoNoEncontradoException("Producto no encontrado con el ID: ".concat(String.valueOf(id))));
 
         if (Objects.nonNull(productoRequestDto.getNombre())){
@@ -47,6 +47,13 @@ public class ProductoService {
         Producto productoActualizado = productoRepository.save(producto);
 
         return ProductoMapper.toDTO(productoActualizado);
+    }
+
+    public void borrarProducto(Long id){
+        Producto producto = productoRepository.findByIdAndEstadoProductoNot(id, EstadoProducto.ELIMINADO)
+                .orElseThrow(() -> new ProductoNoEncontradoException("Producto no encontrado con el ID: ".concat(String.valueOf(id))));
+        producto.setEstadoProducto(EstadoProducto.ELIMINADO);
+        productoRepository.save(producto);
     }
 
 }
