@@ -1,5 +1,6 @@
 package com.superrrr.franky.dto;
 
+import com.superrrr.franky.dto.validators.CrearProductoGrupoValidacion;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -13,11 +14,11 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class ProductoRequestDto {
 
-    @NotBlank(message = "Nombre es requerido")
+    @NotBlank(groups = CrearProductoGrupoValidacion.class, message = "Nombre es requerido")
     private String nombre;
 
     private String categoria;
 
-    @NotNull(message = "Precio del producto es requerido")
+    @NotNull(groups = CrearProductoGrupoValidacion.class, message = "Precio del producto es requerido")
     private BigDecimal precio;
 }
