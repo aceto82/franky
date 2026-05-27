@@ -2,8 +2,10 @@ package com.superrrr.franky.model;
 
 import com.superrrr.franky.enums.EstadoProducto;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -12,6 +14,8 @@ import java.util.List;
 @Entity
 @Table(name = "productos")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class Producto {
 

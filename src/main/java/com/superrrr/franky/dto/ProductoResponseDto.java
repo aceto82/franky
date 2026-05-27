@@ -1,15 +1,14 @@
 package com.superrrr.franky.dto;
 
 import com.superrrr.franky.enums.EstadoProducto;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @Builder
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductoResponseDto {
 
     private Long id;

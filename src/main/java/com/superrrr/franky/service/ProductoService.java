@@ -1,5 +1,6 @@
 package com.superrrr.franky.service;
 
+import com.superrrr.franky.dto.ProductoRequestDto;
 import com.superrrr.franky.dto.ProductoResponseDto;
 import com.superrrr.franky.enums.EstadoProducto;
 import com.superrrr.franky.mapper.ProductoMapper;
@@ -19,6 +20,13 @@ public class ProductoService {
     public List<ProductoResponseDto> obtenerListaProductos(){
         List<Producto> productos = productoRepository.findByEstadoProductoNot(EstadoProducto.ELIMINADO);
         return productos.stream().map(ProductoMapper::toDTO).toList();
+    }
+
+    public ProductoResponseDto crearProducto(ProductoRequestDto productoRequestDto){
+        Producto producto = ProductoMapper.toModel(productoRequestDto);
+        producto.setEstadoProducto(EstadoProducto.ACTIVO);
+        Producto productoGuardado = productoRepository.save(producto);
+        return ProductoMapper.toDTO(productoGuardado);
     }
 
 

@@ -2,8 +2,10 @@ package com.superrrr.franky.model;
 
 import com.superrrr.franky.enums.EstadoVenta;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
@@ -13,6 +15,8 @@ import java.util.List;
 @Entity
 @Table(name = "ventas")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class Venta {
 
