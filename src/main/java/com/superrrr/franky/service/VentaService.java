@@ -21,6 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,5 +74,14 @@ public class VentaService {
         detalleVentaRepository.saveAll(detalleVentaList);
         ventaSaved.setDetalles(detalleVentaList);
         return VentaMapper.toDTO(ventaSaved);
+    }
+
+    public List<VentaResponseDto> obtenerVentasPorSucursalYFecha(Long sucursalId, LocalDate fecha){
+        Sucursal sucursal = Sucursal.builder().id(sucursalId).build();
+        Instant fechaInicio = fecha.atStartOfDay(ZoneOffset.UTC).toInstant();
+        Instant fechaFin = fecha.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+        List<Venta> ventaList = ventaRepository.findByFechaBetweenAndSucursalAndEstadoVentaNot(fechaInicio, fechaFin, sucursal, EstadoVenta.ELIMINADO);
+
+        return ventaList.stream().map(VentaMapper::toDTO).toList();
     }
 }

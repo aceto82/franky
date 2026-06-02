@@ -24,7 +24,7 @@ public class Venta {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne()
     @JoinColumn(name = "sucursal_id", nullable = false)
     private Sucursal sucursal;
 
