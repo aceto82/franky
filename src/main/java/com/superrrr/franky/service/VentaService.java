@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,7 +57,7 @@ public class VentaService {
                 .forEach(detalleVentaRequestDto -> {
                     Producto producto = productoRepository.findByIdAndEstadoProductoNot(detalleVentaRequestDto.getProductoId(), EstadoProducto.ELIMINADO)
                             .orElseThrow(
-                                    () -> new ProductoNoEncontradoException("Producto en la lista de venta no encontrada: ID ".concat(detalleVentaRequestDto.getProductoId().toString()))
+                                    () -> new ProductoNoEncontradoException("Producto en la lista de venta no encontrada: ID ".concat(String.valueOf(detalleVentaRequestDto.getProductoId())))
                             );
                     DetalleVenta detalleVenta = new DetalleVenta();
                     detalleVenta.setProducto(producto);

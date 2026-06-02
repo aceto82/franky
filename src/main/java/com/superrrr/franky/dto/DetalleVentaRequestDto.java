@@ -14,5 +14,5 @@ public class DetalleVentaRequestDto {
     private Long productoId;
 
     @NotNull(message = "Se requiere la cantidad de productos")
-    private int cantidad;
+    private Integer cantidad;
 }

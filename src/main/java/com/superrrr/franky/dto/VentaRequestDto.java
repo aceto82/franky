@@ -1,5 +1,6 @@
 package com.superrrr.franky.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -18,5 +19,6 @@ public class VentaRequestDto {
     private Long sucursalId;
 
     @NotEmpty(message = "Debe existir al menos un producto en la lista del detalle de la venta")
+    @Valid
     private List<DetalleVentaRequestDto> detalle;
 }

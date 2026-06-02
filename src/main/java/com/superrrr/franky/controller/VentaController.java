@@ -2,7 +2,6 @@ package com.superrrr.franky.controller;
 
 import com.superrrr.franky.dto.VentaRequestDto;
 import com.superrrr.franky.dto.VentaResponseDto;
-import com.superrrr.franky.model.Venta;
 import com.superrrr.franky.service.VentaService;
 import jakarta.validation.groups.Default;
 import org.springframework.beans.factory.annotation.Autowired;
