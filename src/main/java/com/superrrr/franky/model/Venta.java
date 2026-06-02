@@ -39,7 +39,8 @@ public class Venta {
     @OneToMany(
             mappedBy = "venta",
             cascade = CascadeType.ALL,
-            orphanRemoval = true
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
     )
     private List<DetalleVenta> detalles = new ArrayList<>();
 
