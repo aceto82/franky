@@ -8,6 +8,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.superrrr.franky.producto.exception.ProductoNoEncontradoException;
+import com.superrrr.franky.sucursal.exception.SucursalNoEncontradoException;
+import com.superrrr.franky.venta.exception.VentaNoEncontradaException;
 import java.util.HashMap;
 import java.util.Map;
 
