@@ -7,6 +7,7 @@ import com.superrrr.franky.enums.EstadoSucursal;
 import com.superrrr.franky.enums.EstadoVenta;
 import com.superrrr.franky.exception.ProductoNoEncontradoException;
 import com.superrrr.franky.exception.SucursalNoEncontradoException;
+import com.superrrr.franky.exception.VentaNoEncontradaException;
 import com.superrrr.franky.mapper.VentaMapper;
 import com.superrrr.franky.model.DetalleVenta;
 import com.superrrr.franky.model.Producto;
@@ -83,5 +84,13 @@ public class VentaService {
         List<Venta> ventaList = ventaRepository.findByFechaBetweenAndSucursalAndEstadoVentaNot(fechaInicio, fechaFin, sucursal, EstadoVenta.ELIMINADO);
 
         return ventaList.stream().map(VentaMapper::toDTO).toList();
+    }
+
+    public void borrarVenta(Long ventaId){
+        Venta venta = ventaRepository.findByIdAndEstadoVentaNot(ventaId, EstadoVenta.ELIMINADO)
+                .orElseThrow(()-> new VentaNoEncontradaException("Venta no encontrada con el ID: ".concat(String.valueOf(ventaId))));
+
+        venta.setEstadoVenta(EstadoVenta.ELIMINADO);
+        ventaRepository.save(venta);
     }
 }

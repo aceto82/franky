@@ -35,4 +35,10 @@ public class VentaController {
         List<VentaResponseDto> ventaResponseDtoList = ventaService.obtenerVentasPorSucursalYFecha(ventaFiltrosDto.getSucursalId(), ventaFiltrosDto.getFecha());
         return ResponseEntity.ok().body(ventaResponseDtoList);
     }
+
+    @DeleteMapping("/{id}")
+    public  ResponseEntity<Void> borrarVenta(@PathVariable Long id) {
+        ventaService.borrarVenta(id);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -46,4 +46,13 @@ public class GlobalExceptionHandler {
         errors.put("mensaje", "Sucursal no encontrada");
         return ResponseEntity.badRequest().body(errors);
     }
+
+    @ExceptionHandler(VentaNoEncontradaException.class)
+    public ResponseEntity<Map<String, String>> handleVentaNoEncontrada(VentaNoEncontradaException ex){
+        log.warn("Venta no encontrada {}", ex.getMessage());
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put("mensaje", "Venta no encontrada");
+        return ResponseEntity.badRequest().body(errors);
+    }
 }
