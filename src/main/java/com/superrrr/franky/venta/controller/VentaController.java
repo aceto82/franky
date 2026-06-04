@@ -22,7 +22,7 @@ public class VentaController {
     private VentaService ventaService;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<VentaResponseDto> crearVenta(
             @Validated({Default.class}) @RequestBody VentaRequestDto ventaRequestDto) {
         VentaResponseDto ventaResponseDto = ventaService.CrearVenta(ventaRequestDto);

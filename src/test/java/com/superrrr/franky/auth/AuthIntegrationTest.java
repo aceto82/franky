@@ -6,6 +6,12 @@ import com.superrrr.franky.auth.entity.Usuario;
 import com.superrrr.franky.auth.enums.EstadoUsuario;
 import com.superrrr.franky.auth.enums.Rol;
 import com.superrrr.franky.auth.repositories.UsuarioRepository;
+import com.superrrr.franky.producto.entity.Producto;
+import com.superrrr.franky.producto.enums.EstadoProducto;
+import com.superrrr.franky.producto.repositories.ProductoRepository;
+import com.superrrr.franky.sucursal.entity.Sucursal;
+import com.superrrr.franky.sucursal.enums.EstadoSucursal;
+import com.superrrr.franky.sucursal.repositories.SucursalRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +21,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.math.BigDecimal;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -34,11 +42,21 @@ class AuthIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private SucursalRepository sucursalRepository;
+
+    @Autowired
+    private ProductoRepository productoRepository;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private Long sucursalId;
+    private Long productoId;
 
     @BeforeEach
     void setUp() {
         usuarioRepository.deleteAll();
+        sucursalRepository.deleteAll();
+        productoRepository.deleteAll();
 
         Usuario admin = Usuario.builder()
                 .username("testadmin")
@@ -55,6 +73,20 @@ class AuthIntegrationTest {
                 .estadoUsuario(EstadoUsuario.ACTIVO)
                 .build();
         usuarioRepository.save(user);
+
+        Sucursal sucursal = sucursalRepository.save(Sucursal.builder()
+                .nombre("Test Sucursal")
+                .direccion("Test Dir")
+                .estadoSucursal(EstadoSucursal.ACTIVO)
+                .build());
+        sucursalId = sucursal.getId();
+
+        Producto producto = productoRepository.save(Producto.builder()
+                .nombre("Test Producto")
+                .precio(BigDecimal.TEN)
+                .estadoProducto(EstadoProducto.ACTIVO)
+                .build());
+        productoId = producto.getId();
     }
 
     @Test
@@ -126,6 +158,29 @@ class AuthIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(productoJson))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void createVenta_WithUserRole_Returns201() throws Exception {
+        Usuario user = usuarioRepository
+                .findByUsernameAndEstadoUsuarioNot("testuser", EstadoUsuario.ELIMINADO)
+                .orElseThrow();
+        String token = TestJwtHelper.generateToken(user);
+
+        String ventaJson = """
+                {
+                    "sucursalId": %d,
+                    "detalle": [
+                        {"productoId": %d, "cantidad": 2}
+                    ]
+                }
+                """.formatted(sucursalId, productoId);
+
+        mockMvc.perform(post("/api/ventas")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ventaJson))
+                .andExpect(status().isCreated());
     }
 
     @Test
