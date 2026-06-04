@@ -11,74 +11,91 @@ API REST para administrar productos, sucursales y ventas de un supermercado.
 ## Requisitos previos
 
 - JDK 21
-- PostgreSQL en funcionamiento
-- Base de datos creada (por ejemplo `franky`)
+- Docker (para PostgreSQL) o PostgreSQL instalado
 
-## Configuración
-
-Variables de entorno requeridas:
-
-| Variable | Descripción |
-|---|---|
-| `DB_URL` | JDBC URL (ej. `jdbc:postgresql://localhost:5432/franky`) |
-| `DB_USER` | Usuario de base de datos |
-| `DB_PASS` | Contraseña del usuario |
-
-Hibernate usa `ddl-auto=update`: las tablas se crean/actualizan automáticamente al iniciar.
-
-## Ejecución
+## Inicio rápido
 
 ```bash
-export DB_URL=jdbc:postgresql://localhost:5432/franky DB_USER=... DB_PASS=...
+# 1. Iniciar PostgreSQL
+docker compose up -d
+
+# 2. Configurar credenciales y ejecutar
+export DB_URL=jdbc:postgresql://localhost:5432/franky DB_USER=franky DB_PASS=franky
 ./mvnw spring-boot:run
 ```
 
 ## Tests
 
-Los tests también requieren la base de datos (no hay perfil H2 configurado).
+Usan H2 en memoria — no requieren PostgreSQL:
 
 ```bash
-./mvnw test
-./mvnw test -Dtest=FrankyApplicationTests
+./mvnw test -Dspring.profiles.active=h2
 ```
-
-## Arquitectura
-
-Layered estándar: `Controller` → `Service` → `Repository` (JPA) → `Entity`
-
-| Dominio | Paquete |
-|---|---|
-| Productos | `controller.ProductoController`, `service.ProductoService`, `repositories.ProductoRepository` |
-| Sucursales | `controller.SucursalController`, `service.SucursalService`, `repositories.SucursalRepository` |
-| Ventas | `controller.VentaController`, `service.VentaService`, `repositories.{Venta,DetalleVenta}Repository` |
 
 ## API
 
+### 📖 Documentación interactiva (Swagger)
+
+Una vez ejecutando la aplicación:
+
+| Recurso | URL |
+|---|---|
+| Swagger UI | [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) |
+| OpenAPI JSON | [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs) |
+
+Los endpoints protegidos muestran un candado en Swagger UI. Usar el botón **Authorize** e ingresar un token JWT obtenido de `/api/auth/login`.
+
+### Autenticación
+
+| Método | Ruta | Descripción | Auth |
+|---|---|---|---|
+| POST | `/api/auth/login` | Iniciar sesión (devuelve JWT) | Público |
+
 ### Productos
 
-| Método | Ruta | Descripción |
-|---|---|---|
-| GET | `/api/productos` | Listar productos |
-| POST | `/api/productos` | Crear producto |
-| PUT | `/api/productos/{id}` | Actualizar producto |
-| DELETE | `/api/productos/{id}` | Eliminación lógica |
+| Método | Ruta | Descripción | Auth |
+|---|---|---|---|
+| GET | `/api/productos` | Listar productos | Cualquier rol |
+| POST | `/api/productos` | Crear producto | ADMIN |
+| PUT | `/api/productos/{id}` | Actualizar producto | ADMIN |
+| DELETE | `/api/productos/{id}` | Eliminación lógica | ADMIN |
 
 ### Sucursales
 
-| Método | Ruta | Descripción |
-|---|---|---|
-| GET | `/api/sucursales` | Listar sucursales |
-| POST | `/api/sucursales` | Crear sucursal |
-| PUT | `/api/sucursales/{id}` | Actualizar sucursal |
-| DELETE | `/api/sucursales/{id}` | Eliminación lógica |
+| Método | Ruta | Descripción | Auth |
+|---|---|---|---|
+| GET | `/api/sucursales` | Listar sucursales | Cualquier rol |
+| POST | `/api/sucursales` | Crear sucursal | ADMIN |
+| PUT | `/api/sucursales/{id}` | Actualizar sucursal | ADMIN |
+| DELETE | `/api/sucursales/{id}` | Eliminación lógica | ADMIN |
 
 ### Ventas
 
-| Método | Ruta | Descripción |
-|---|---|---|
-| POST | `/api/ventas` | Crear venta con detalle de productos |
-| GET | `/api/ventas` | Filtrar por `sucursalId` y `fecha` (query params) |
-| DELETE | `/api/ventas/{id}` | Eliminación lógica |
+| Método | Ruta | Descripción | Auth |
+|---|---|---|---|
+| POST | `/api/ventas` | Crear venta con detalle de productos | ADMIN o USER |
+| GET | `/api/ventas` | Filtrar por `sucursalId` y `fecha` (query params) | ADMIN |
+| DELETE | `/api/ventas/{id}` | Eliminación lógica | ADMIN |
+
+### Estadísticas
+
+| Método | Ruta | Descripción | Auth |
+|---|---|---|---|
+| GET | `/api/estadisticas/producto-mas-vendido` | Producto más vendido (por cantidad total) | Cualquier rol autenticado |
+
+## Arquitectura
+
+Package-by-feature con sub-packages por tipo de artefacto:
+
+| Feature | Paquetes |
+|---|---|
+| `producto/` | `controller`, `service`, `repositories`, `entity`, `enums`, `mapper`, `dto`, `exception`, `validation` |
+| `sucursal/` | `controller`, `service`, `repositories`, `entity`, `enums`, `mapper`, `dto`, `exception`, `validation` |
+| `venta/` | `controller`, `service`, `repositories`, `entity`, `enums`, `mapper`, `dto`, `exception` |
+| `auth/` | `controller`, `service`, `repositories`, `entity`, `enums`, `mapper`, `dto`, `exception` |
+| `estadistica/` | `controller`, `service`, `dto`, `exception` |
+
+Cross-cutting: `config/`, `exception/GlobalExceptionHandler`.
 
 ## Convenciones del proyecto
 
