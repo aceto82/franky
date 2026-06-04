@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.superrrr.franky.auth.exception.CredencialesInvalidasException;
+import com.superrrr.franky.estadistica.exception.EstadisticaNoEncontradaException;
 import com.superrrr.franky.producto.exception.ProductoNoEncontradoException;
 import com.superrrr.franky.sucursal.exception.SucursalNoEncontradoException;
 import com.superrrr.franky.venta.exception.VentaNoEncontradaException;
@@ -59,6 +60,15 @@ public class GlobalExceptionHandler {
         Map<String, String> errors = new HashMap<>();
         errors.put("mensaje", "Venta no encontrada");
         return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(EstadisticaNoEncontradaException.class)
+    public ResponseEntity<Map<String, String>> handleEstadisticaNoEncontrada(EstadisticaNoEncontradaException ex){
+        log.warn("Estadistica no encontrada {}", ex.getMessage());
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put("mensaje", "Estadistica no encontrada");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errors);
     }
 
     @ExceptionHandler(CredencialesInvalidasException.class)

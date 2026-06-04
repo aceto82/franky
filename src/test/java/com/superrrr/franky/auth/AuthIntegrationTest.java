@@ -12,6 +12,7 @@ import com.superrrr.franky.producto.repositories.ProductoRepository;
 import com.superrrr.franky.sucursal.entity.Sucursal;
 import com.superrrr.franky.sucursal.enums.EstadoSucursal;
 import com.superrrr.franky.sucursal.repositories.SucursalRepository;
+import com.superrrr.franky.venta.repositories.VentaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,12 +49,16 @@ class AuthIntegrationTest {
     @Autowired
     private ProductoRepository productoRepository;
 
+    @Autowired
+    private VentaRepository ventaRepository;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private Long sucursalId;
     private Long productoId;
 
     @BeforeEach
     void setUp() {
+        ventaRepository.deleteAll();
         usuarioRepository.deleteAll();
         sucursalRepository.deleteAll();
         productoRepository.deleteAll();
@@ -181,6 +186,41 @@ class AuthIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(ventaJson))
                 .andExpect(status().isCreated());
+    }
+
+    @Test
+    void getProductoMasVendido_WithValidToken_Returns200() throws Exception {
+        Usuario admin = usuarioRepository
+                .findByUsernameAndEstadoUsuarioNot("testadmin", EstadoUsuario.ELIMINADO)
+                .orElseThrow();
+        String token = TestJwtHelper.generateToken(admin);
+
+        String ventaJson = """
+                {
+                    "sucursalId": %d,
+                    "detalle": [
+                        {"productoId": %d, "cantidad": 2}
+                    ]
+                }
+                """.formatted(sucursalId, productoId);
+
+        mockMvc.perform(post("/api/ventas")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ventaJson))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/estadisticas/producto-mas-vendido")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombre").value("Test Producto"))
+                .andExpect(jsonPath("$.totalVendido").value(2));
+    }
+
+    @Test
+    void getProductoMasVendido_WithoutToken_Returns401() throws Exception {
+        mockMvc.perform(get("/api/estadisticas/producto-mas-vendido"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
