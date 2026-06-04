@@ -8,6 +8,7 @@ import jakarta.validation.groups.Default;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +28,7 @@ public class SucursalController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<SucursalResponseDto> crearSucursal(
             @Validated({Default.class, CrearSucursalGrupoValidacion.class}) @RequestBody SucursalRequestDto sucursalRequestDto) {
         SucursalResponseDto sucursalResponseDto = sucursalService.crearSucursal(sucursalRequestDto);
@@ -34,6 +36,7 @@ public class SucursalController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<SucursalResponseDto> actualizarSucursal(
             @PathVariable Long id,
             @Validated({Default.class}) @RequestBody SucursalRequestDto sucursalRequestDto) {
@@ -42,6 +45,7 @@ public class SucursalController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> borrarSucursal(@PathVariable Long id) {
         sucursalService.borrarSucursal(id);
         return ResponseEntity.noContent().build();

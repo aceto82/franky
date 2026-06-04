@@ -8,6 +8,7 @@ import jakarta.validation.groups.Default;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +22,7 @@ public class VentaController {
     private VentaService ventaService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<VentaResponseDto> crearVenta(
             @Validated({Default.class}) @RequestBody VentaRequestDto ventaRequestDto) {
         VentaResponseDto ventaResponseDto = ventaService.CrearVenta(ventaRequestDto);
@@ -36,6 +38,7 @@ public class VentaController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public  ResponseEntity<Void> borrarVenta(@PathVariable Long id) {
         ventaService.borrarVenta(id);
         return ResponseEntity.noContent().build();

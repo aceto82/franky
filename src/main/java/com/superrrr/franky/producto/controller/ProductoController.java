@@ -8,6 +8,7 @@ import jakarta.validation.groups.Default;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +28,7 @@ public class ProductoController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ProductoResponseDto> crearProducto(
             @Validated({Default.class, CrearProductoGrupoValidacion.class}) @RequestBody ProductoRequestDto productoRequestDto){
         ProductoResponseDto productoResponseDto = productoService.crearProducto(productoRequestDto);
@@ -34,6 +36,7 @@ public class ProductoController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ProductoResponseDto> actualizarProducto(
             @PathVariable Long id,
             @Validated({Default.class}) @RequestBody ProductoRequestDto productoRequestDto){
@@ -42,6 +45,7 @@ public class ProductoController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> borrarProducto(@PathVariable Long id){
         productoService.borrarProducto(id);
         return ResponseEntity.noContent().build();

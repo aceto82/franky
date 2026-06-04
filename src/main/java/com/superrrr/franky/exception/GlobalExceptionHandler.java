@@ -3,11 +3,13 @@ package com.superrrr.franky.exception;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.superrrr.franky.auth.exception.CredencialesInvalidasException;
 import com.superrrr.franky.producto.exception.ProductoNoEncontradoException;
 import com.superrrr.franky.sucursal.exception.SucursalNoEncontradoException;
 import com.superrrr.franky.venta.exception.VentaNoEncontradaException;
@@ -57,5 +59,14 @@ public class GlobalExceptionHandler {
         Map<String, String> errors = new HashMap<>();
         errors.put("mensaje", "Venta no encontrada");
         return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(CredencialesInvalidasException.class)
+    public ResponseEntity<Map<String, String>> handleCredencialesInvalidas(CredencialesInvalidasException ex){
+        log.warn("Credenciales invalidas {}", ex.getMessage());
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put("mensaje", "Credenciales invalidas");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errors);
     }
 }
