@@ -17,11 +17,63 @@ API REST para administrar productos, sucursales y ventas de un supermercado.
 
 ```bash
 # 1. Iniciar PostgreSQL
-docker compose up -d
+./run.sh dc:up
 
-# 2. Configurar credenciales y ejecutar
-export DB_URL=jdbc:postgresql://localhost:5432/franky DB_USER=franky DB_PASS=franky
-./mvnw spring-boot:run
+# 2. Iniciar la aplicación en modo desarrollo
+./run.sh dev
+```
+
+## Script de utilidad (run.sh)
+
+El proyecto incluye `run.sh`, un script que centraliza todas las tareas comunes (base de datos, compilación, tests, cobertura). Soporta dos modos de uso:
+
+### Modo interactivo (menú)
+
+Ejecutar sin argumentos muestra un menú con opciones numeradas:
+
+```
+╔══════════════════════════════════════╗
+║  franky - Menu de opciones          ║
+╚══════════════════════════════════════╝
+
+  1)  Arrancar PostgreSQL (docker compose)
+  2)  Iniciar aplicacion (dev)
+  3)  Ejecutar tests (H2)
+  4)  Compilar
+  5)  Clean + compilar
+  6)  Clean + tests (H2)
+  7)  Coverage report (JaCoCo)
+  8)  Estado de containers
+  9)  Detener PostgreSQL
+  0)  Salir
+```
+
+### Modo CLI (argumentos)
+
+| Comando | Descripción |
+|---|---|
+| `dc:up` | Arrancar PostgreSQL con Docker Compose |
+| `dc:down` | Detener PostgreSQL |
+| `dc:status` | Mostrar estado de los contenedores |
+| `dev` | Iniciar aplicación en modo desarrollo |
+| `test` | Ejecutar tests con H2 en memoria |
+| `compile` | Compilar el proyecto |
+| `clean` | Limpiar y compilar desde cero |
+| `clean-test` | Limpiar, compilar y ejecutar tests |
+| `coverage` | Ejecutar tests y generar reporte de cobertura (JaCoCo) |
+
+### Ejemplos de uso
+
+```bash
+# Flujo completo: arrancar DB, compilar, ejecutar tests
+./run.sh dc:up
+./run.sh clean-test
+
+# Generar reporte de cobertura
+./run.sh coverage
+
+# Solo compilar rápido
+./run.sh compile
 ```
 
 ## Tests
