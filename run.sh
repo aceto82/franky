@@ -80,6 +80,13 @@ cmd_clean_test() {
     ok "Clean build and tests passed"
 }
 
+cmd_coverage() {
+    check_mvnw
+    info "Running tests with coverage report (JaCoCo)..."
+    ./mvnw clean verify -Dspring.profiles.active=h2
+    ok "Coverage report generated at target/site/jacoco/index.html"
+}
+
 menu() {
     local title="${APP_NAME} - Menu de opciones"
     echo
@@ -92,10 +99,11 @@ menu() {
     echo "  3)  Ejecutar tests (H2)"
     echo "  4)  Compilar"
     echo "  5)  Clean + compilar"
-    echo "  6)  Clean + tests (H2)"
-    echo "  7)  Estado de containers"
-    echo "  8)  Detener PostgreSQL"
-    echo "  0)  Salir"
+     echo "  6)  Clean + tests (H2)"
+     echo "  7)  Coverage report (JaCoCo)"
+     echo "  8)  Estado de containers"
+     echo "  9)  Detener PostgreSQL"
+     echo "  0)  Salir"
     echo
 }
 
@@ -111,8 +119,9 @@ if [ $# -eq 0 ]; then
             4) cmd_compile ;;
             5) cmd_clean_compile ;;
             6) cmd_clean_test ;;
-            7) cmd_dc_status ;;
-            8) cmd_dc_down ;;
+            7) cmd_coverage ;;
+            8) cmd_dc_status ;;
+            9) cmd_dc_down ;;
             0) echo "Chau!"; exit 0 ;;
             *) warn "Opcion invalida: $opt" ;;
         esac
@@ -129,6 +138,7 @@ else
         compile)   shift; cmd_compile "$@" ;;
         clean)     shift; cmd_clean_compile "$@" ;;
         clean-test) shift; cmd_clean_test "$@" ;;
+        coverage)  shift; cmd_coverage "$@" ;;
         *)
             echo "Uso: ./run.sh [comando]"
             echo
@@ -141,6 +151,7 @@ else
             echo "  compile     Compilar"
             echo "  clean       Clean + compilar"
             echo "  clean-test  Clean + tests (H2)"
+            echo "  coverage    Tests + reporte de cobertura (JaCoCo)"
             echo
             echo "Sin argumentos: menu interactivo"
             exit 1
