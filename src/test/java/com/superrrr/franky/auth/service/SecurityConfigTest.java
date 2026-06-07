@@ -41,7 +41,7 @@ class SecurityConfigTest {
     @Test
     void adminEndpoint_WithUserRole_Returns403() throws Exception {
         Usuario user = Usuario.builder()
-                .username("testuser")
+                .username("user")
                 .rol(Rol.USER)
                 .estadoUsuario(EstadoUsuario.ACTIVO)
                 .build();
