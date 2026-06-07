@@ -30,14 +30,25 @@ public class VentaController {
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
-    @Operation(summary = "Registrar venta", description = "Crea una nueva venta para una sucursal con productos y cantidades. Requiere rol ADMIN o USER.")
+    @Operation(summary = "Registrar venta", description = "Crea una nueva venta para una sucursal con productos y cantidades. Soporta idempotencia mediante el header Idempotency-Key. Requiere rol ADMIN o USER.")
+    @ApiResponse(responseCode = "200", description = "Venta existente devuelta por idempotencia (misma Idempotency-Key usada anteriormente)", content = @Content(schema = @Schema(implementation = VentaResponseDto.class)))
     @ApiResponse(responseCode = "201", description = "Venta creada exitosamente", content = @Content(schema = @Schema(implementation = VentaResponseDto.class)))
     @ApiResponse(responseCode = "400", description = "Datos inválidos en la solicitud")
     @ApiResponse(responseCode = "401", description = "No autenticado")
     @ApiResponse(responseCode = "403", description = "No autorizado")
     public ResponseEntity<VentaResponseDto> crearVenta(
+            @RequestHeader(value = "Idempotency-Key", required = false)
+            @Parameter(description = "Clave de idempotencia para evitar duplicados (UUID recomendado)")
+            String idempotencyKey,
             @Validated({Default.class}) @RequestBody VentaRequestDto ventaRequestDto) {
-        VentaResponseDto ventaResponseDto = ventaService.CrearVenta(ventaRequestDto);
+        boolean isRetry = false;
+        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+            isRetry = ventaService.existePorIdempotencyKey(idempotencyKey);
+        }
+        VentaResponseDto ventaResponseDto = ventaService.CrearVenta(ventaRequestDto, idempotencyKey);
+        if (isRetry) {
+            return ResponseEntity.ok(ventaResponseDto);
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(ventaResponseDto);
     }
 

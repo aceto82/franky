@@ -37,6 +37,9 @@ public class Venta {
     @Column(name = "fecha", updatable = false, nullable = false)
     private Instant fecha;
 
+    @Column(name = "idempotency_key", unique = true)
+    private String idempotencyKey;
+
     @OneToMany(
             mappedBy = "venta",
             cascade = CascadeType.ALL,

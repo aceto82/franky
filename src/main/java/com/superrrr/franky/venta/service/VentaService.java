@@ -19,6 +19,7 @@ import com.superrrr.franky.venta.repositories.DetalleVentaRepository;
 import com.superrrr.franky.venta.repositories.VentaRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -43,8 +44,27 @@ public class VentaService {
     @Autowired
     private ProductoRepository productoRepository;
 
+    public boolean existePorIdempotencyKey(String idempotencyKey) {
+        return ventaRepository.findByIdempotencyKey(idempotencyKey).isPresent();
+    }
+
     @Transactional
-    public VentaResponseDto CrearVenta(VentaRequestDto ventaRequestDto){
+    public VentaResponseDto CrearVenta(VentaRequestDto ventaRequestDto, String idempotencyKey){
+        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+            try {
+                return ventaRepository.findByIdempotencyKey(idempotencyKey)
+                        .map(VentaMapper::toDTO)
+                        .orElseGet(() -> crearNuevaVenta(ventaRequestDto, idempotencyKey));
+            } catch (DataIntegrityViolationException e) {
+                return ventaRepository.findByIdempotencyKey(idempotencyKey)
+                        .map(VentaMapper::toDTO)
+                        .orElseThrow(() -> new RuntimeException("Error de concurrencia al crear venta con clave: " + idempotencyKey, e));
+            }
+        }
+        return crearNuevaVenta(ventaRequestDto, null);
+    }
+
+    private VentaResponseDto crearNuevaVenta(VentaRequestDto ventaRequestDto, String idempotencyKey){
         Sucursal sucursal = sucursalRepository.findByIdAndEstadoSucursalNot(ventaRequestDto.getSucursalId(), EstadoSucursal.ELIMINADO)
                 .orElseThrow(
                         () -> new SucursalNoEncontradoException("Sucursal de la venta no encontrada, ID: ".concat(ventaRequestDto.getSucursalId().toString()))
@@ -53,6 +73,7 @@ public class VentaService {
         Venta venta = new Venta();
         venta.setSucursal(sucursal);
         venta.setEstadoVenta(EstadoVenta.ACTIVO);
+        venta.setIdempotencyKey(idempotencyKey);
         Venta ventaSaved = ventaRepository.save(venta);
 
         List<DetalleVenta> detalleVentaList = new ArrayList<>();

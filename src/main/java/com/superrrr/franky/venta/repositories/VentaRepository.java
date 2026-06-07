@@ -18,6 +18,8 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
 
     Optional<Venta> findByIdAndEstadoVentaNot(Long id, EstadoVenta estadoVenta);
 
+    Optional<Venta> findByIdempotencyKey(String idempotencyKey);
+
     @Query("SELECT v FROM Venta v LEFT JOIN FETCH v.detalles d LEFT JOIN FETCH d.producto WHERE v.estadoVenta <> :estado")
     List<Venta> findAllByEstadoVentaNot(EstadoVenta estado);
 }
