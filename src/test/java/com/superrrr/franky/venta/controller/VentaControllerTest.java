@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -62,6 +63,7 @@ class VentaControllerTest {
                 .thenReturn(new User("user", "", List.of(new SimpleGrantedAuthority("ROLE_USER"))));
         when(userDetailsService.loadUserByUsername("admin"))
                 .thenReturn(new User("admin", "", List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+        lenient().when(ventaService.existePorIdempotencyKey(any())).thenReturn(false);
     }
 
     @Test
@@ -73,13 +75,54 @@ class VentaControllerTest {
         VentaResponseDto response = VentaResponseDto.builder()
                 .id(1L).fecha(Instant.now()).estadoVenta(EstadoVenta.ACTIVO).build();
 
-        when(ventaService.CrearVenta(any(VentaRequestDto.class))).thenReturn(response);
+        when(ventaService.CrearVenta(any(VentaRequestDto.class), any())).thenReturn(response);
 
         mockMvc.perform(post("/api/ventas")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1));
+    }
+
+    @Test
+    void crearVenta_WithIdempotencyKey_ShouldReturn201() throws Exception {
+        VentaRequestDto request = new VentaRequestDto();
+        request.setSucursalId(1L);
+        request.setDetalle(List.of(new DetalleVentaRequestDto(1L, 2)));
+
+        VentaResponseDto response = VentaResponseDto.builder()
+                .id(1L).fecha(Instant.now()).estadoVenta(EstadoVenta.ACTIVO).build();
+
+        when(ventaService.CrearVenta(any(VentaRequestDto.class), eq("key-123"))).thenReturn(response);
+
+        mockMvc.perform(post("/api/ventas")
+                        .header("Authorization", "Bearer " + userToken)
+                        .header("Idempotency-Key", "key-123")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1));
+    }
+
+    @Test
+    void crearVenta_WithIdempotencyKey_ShouldReturn200OnRetry() throws Exception {
+        VentaRequestDto request = new VentaRequestDto();
+        request.setSucursalId(1L);
+        request.setDetalle(List.of(new DetalleVentaRequestDto(1L, 2)));
+
+        VentaResponseDto response = VentaResponseDto.builder()
+                .id(1L).fecha(Instant.now()).estadoVenta(EstadoVenta.ACTIVO).build();
+
+        when(ventaService.existePorIdempotencyKey("key-123")).thenReturn(true);
+        when(ventaService.CrearVenta(any(VentaRequestDto.class), eq("key-123"))).thenReturn(response);
+
+        mockMvc.perform(post("/api/ventas")
+                        .header("Authorization", "Bearer " + userToken)
+                        .header("Idempotency-Key", "key-123")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1));
     }
 
