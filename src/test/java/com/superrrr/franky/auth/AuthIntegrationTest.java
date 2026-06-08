@@ -183,6 +183,7 @@ class AuthIntegrationTest {
 
         mockMvc.perform(post("/api/ventas")
                         .header("Authorization", "Bearer " + token)
+                        .header("Idempotency-Key", "int-test-key-1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(ventaJson))
                 .andExpect(status().isCreated());
@@ -206,6 +207,7 @@ class AuthIntegrationTest {
 
         mockMvc.perform(post("/api/ventas")
                         .header("Authorization", "Bearer " + token)
+                        .header("Idempotency-Key", "int-test-key-2")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(ventaJson))
                 .andExpect(status().isCreated());

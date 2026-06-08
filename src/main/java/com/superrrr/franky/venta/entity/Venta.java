@@ -37,7 +37,7 @@ public class Venta {
     @Column(name = "fecha", updatable = false, nullable = false)
     private Instant fecha;
 
-    @Column(name = "idempotency_key", unique = true)
+    @Column(name = "idempotency_key", unique = true, nullable = false)
     private String idempotencyKey;
 
     @OneToMany(

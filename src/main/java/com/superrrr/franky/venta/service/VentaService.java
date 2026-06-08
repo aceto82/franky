@@ -13,6 +13,7 @@ import com.superrrr.franky.venta.dto.VentaResponseDto;
 import com.superrrr.franky.venta.entity.DetalleVenta;
 import com.superrrr.franky.venta.enums.EstadoVenta;
 import com.superrrr.franky.venta.entity.Venta;
+import com.superrrr.franky.venta.exception.IdempotencyKeyRequeridaException;
 import com.superrrr.franky.venta.exception.VentaNoEncontradaException;
 import com.superrrr.franky.venta.mapper.VentaMapper;
 import com.superrrr.franky.venta.repositories.DetalleVentaRepository;
@@ -50,18 +51,18 @@ public class VentaService {
 
     @Transactional
     public VentaResponseDto CrearVenta(VentaRequestDto ventaRequestDto, String idempotencyKey){
-        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
-            try {
-                return ventaRepository.findByIdempotencyKey(idempotencyKey)
-                        .map(VentaMapper::toDTO)
-                        .orElseGet(() -> crearNuevaVenta(ventaRequestDto, idempotencyKey));
-            } catch (DataIntegrityViolationException e) {
-                return ventaRepository.findByIdempotencyKey(idempotencyKey)
-                        .map(VentaMapper::toDTO)
-                        .orElseThrow(() -> new RuntimeException("Error de concurrencia al crear venta con clave: " + idempotencyKey, e));
-            }
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            throw new IdempotencyKeyRequeridaException("El header Idempotency-Key es requerido para crear una venta");
         }
-        return crearNuevaVenta(ventaRequestDto, null);
+        try {
+            return ventaRepository.findByIdempotencyKey(idempotencyKey)
+                    .map(VentaMapper::toDTO)
+                    .orElseGet(() -> crearNuevaVenta(ventaRequestDto, idempotencyKey));
+        } catch (DataIntegrityViolationException e) {
+            return ventaRepository.findByIdempotencyKey(idempotencyKey)
+                    .map(VentaMapper::toDTO)
+                    .orElseThrow(() -> new RuntimeException("Error de concurrencia al crear venta con clave: " + idempotencyKey, e));
+        }
     }
 
     private VentaResponseDto crearNuevaVenta(VentaRequestDto ventaRequestDto, String idempotencyKey){

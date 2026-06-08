@@ -14,6 +14,7 @@ import com.superrrr.franky.venta.dto.VentaResponseDto;
 import com.superrrr.franky.venta.entity.DetalleVenta;
 import com.superrrr.franky.venta.entity.Venta;
 import com.superrrr.franky.venta.enums.EstadoVenta;
+import com.superrrr.franky.venta.exception.IdempotencyKeyRequeridaException;
 import com.superrrr.franky.venta.exception.VentaNoEncontradaException;
 import com.superrrr.franky.venta.repositories.DetalleVentaRepository;
 import com.superrrr.franky.venta.repositories.VentaRepository;
@@ -71,7 +72,9 @@ class VentaServiceTest {
                 .thenReturn(Optional.of(producto));
         when(detalleVentaRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
 
-        VentaResponseDto result = ventaService.CrearVenta(request, null);
+        when(ventaRepository.findByIdempotencyKey("test-key")).thenReturn(Optional.empty());
+
+        VentaResponseDto result = ventaService.CrearVenta(request, "test-key");
 
         assertNotNull(result);
         assertEquals(1L, result.getSucursalId());
@@ -88,7 +91,7 @@ class VentaServiceTest {
         when(sucursalRepository.findByIdAndEstadoSucursalNot(99L, EstadoSucursal.ELIMINADO))
                 .thenReturn(Optional.empty());
 
-        assertThrows(SucursalNoEncontradoException.class, () -> ventaService.CrearVenta(request, null));
+        assertThrows(SucursalNoEncontradoException.class, () -> ventaService.CrearVenta(request, "test-key"));
     }
 
     @Test
@@ -104,7 +107,7 @@ class VentaServiceTest {
         when(productoRepository.findByIdAndEstadoProductoNot(99L, EstadoProducto.ELIMINADO))
                 .thenReturn(Optional.empty());
 
-        assertThrows(ProductoNoEncontradoException.class, () -> ventaService.CrearVenta(request, null));
+        assertThrows(ProductoNoEncontradoException.class, () -> ventaService.CrearVenta(request, "test-key"));
     }
 
     @Test
@@ -160,57 +163,21 @@ class VentaServiceTest {
     }
 
     @Test
-    void CrearVenta_WithoutIdempotencyKey_ShouldCreateNormally() {
-        Sucursal sucursal = Sucursal.builder().id(1L).build();
-        Producto producto = Producto.builder().id(10L).nombre("Coca").precio(BigDecimal.TEN).build();
+    void CrearVenta_WithoutIdempotencyKey_ShouldThrowException() {
         VentaRequestDto request = new VentaRequestDto();
         request.setSucursalId(1L);
         request.setDetalle(List.of(new DetalleVentaRequestDto(10L, 2)));
 
-        DetalleVenta detalle = DetalleVenta.builder()
-                .producto(producto).cantidad(2).precioUnitario(BigDecimal.TEN).subtotal(BigDecimal.valueOf(20))
-                .build();
-
-        when(sucursalRepository.findByIdAndEstadoSucursalNot(1L, EstadoSucursal.ELIMINADO))
-                .thenReturn(Optional.of(sucursal));
-        when(ventaRepository.save(any(Venta.class))).thenReturn(
-                Venta.builder().id(1L).sucursal(sucursal).fecha(Instant.now()).detalles(List.of(detalle)).build()
-        );
-        when(productoRepository.findByIdAndEstadoProductoNot(10L, EstadoProducto.ELIMINADO))
-                .thenReturn(Optional.of(producto));
-        when(detalleVentaRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
-
-        VentaResponseDto result = ventaService.CrearVenta(request, null);
-
-        assertNotNull(result);
-        verify(ventaRepository).save(any(Venta.class));
+        assertThrows(IdempotencyKeyRequeridaException.class, () -> ventaService.CrearVenta(request, null));
     }
 
     @Test
-    void CrearVenta_WithBlankIdempotencyKey_ShouldCreateNormally() {
-        Sucursal sucursal = Sucursal.builder().id(1L).build();
-        Producto producto = Producto.builder().id(10L).nombre("Coca").precio(BigDecimal.TEN).build();
+    void CrearVenta_WithBlankIdempotencyKey_ShouldThrowException() {
         VentaRequestDto request = new VentaRequestDto();
         request.setSucursalId(1L);
         request.setDetalle(List.of(new DetalleVentaRequestDto(10L, 2)));
 
-        DetalleVenta detalle = DetalleVenta.builder()
-                .producto(producto).cantidad(2).precioUnitario(BigDecimal.TEN).subtotal(BigDecimal.valueOf(20))
-                .build();
-
-        when(sucursalRepository.findByIdAndEstadoSucursalNot(1L, EstadoSucursal.ELIMINADO))
-                .thenReturn(Optional.of(sucursal));
-        when(ventaRepository.save(any(Venta.class))).thenReturn(
-                Venta.builder().id(1L).sucursal(sucursal).fecha(Instant.now()).detalles(List.of(detalle)).build()
-        );
-        when(productoRepository.findByIdAndEstadoProductoNot(10L, EstadoProducto.ELIMINADO))
-                .thenReturn(Optional.of(producto));
-        when(detalleVentaRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
-
-        VentaResponseDto result = ventaService.CrearVenta(request, "   ");
-
-        assertNotNull(result);
-        verify(ventaRepository).save(any(Venta.class));
+        assertThrows(IdempotencyKeyRequeridaException.class, () -> ventaService.CrearVenta(request, "   "));
     }
 
     @Test

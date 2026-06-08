@@ -13,9 +13,11 @@ import com.superrrr.franky.auth.exception.CredencialesInvalidasException;
 import com.superrrr.franky.estadistica.exception.EstadisticaNoEncontradaException;
 import com.superrrr.franky.producto.exception.ProductoNoEncontradoException;
 import com.superrrr.franky.sucursal.exception.SucursalNoEncontradoException;
+import com.superrrr.franky.venta.exception.IdempotencyKeyRequeridaException;
 import com.superrrr.franky.venta.exception.VentaNoEncontradaException;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.web.bind.MissingRequestHeaderException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -78,5 +80,23 @@ public class GlobalExceptionHandler {
         Map<String, String> errors = new HashMap<>();
         errors.put("mensaje", "Credenciales invalidas");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errors);
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<Map<String, String>> handleMissingRequestHeader(MissingRequestHeaderException ex){
+        log.warn("Header requerido faltante: {}", ex.getHeaderName());
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put("mensaje", "El header '" + ex.getHeaderName() + "' es requerido");
+        return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(IdempotencyKeyRequeridaException.class)
+    public ResponseEntity<Map<String, String>> handleIdempotencyKeyRequerida(IdempotencyKeyRequeridaException ex){
+        log.warn("Idempotency-Key requerida: {}", ex.getMessage());
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put("mensaje", ex.getMessage());
+        return ResponseEntity.badRequest().body(errors);
     }
 }
