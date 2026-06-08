@@ -91,7 +91,7 @@ menu() {
     local title="${APP_NAME} - Menu de opciones"
     echo
     echo -e "${CYAN}╔══════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║  ${title}${NC}"
+    echo -e "${CYAN}   ${title}${NC}"
     echo -e "${CYAN}╚══════════════════════════════════════╝${NC}"
     echo
     echo "  1)  Arrancar PostgreSQL (docker compose)"
