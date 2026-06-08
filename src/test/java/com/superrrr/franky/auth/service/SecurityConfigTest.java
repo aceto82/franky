@@ -4,14 +4,22 @@ import com.superrrr.franky.auth.TestJwtHelper;
 import com.superrrr.franky.auth.entity.Usuario;
 import com.superrrr.franky.auth.enums.EstadoUsuario;
 import com.superrrr.franky.auth.enums.Rol;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -23,6 +31,15 @@ class SecurityConfigTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private UserDetailsService userDetailsService;
+
+    @BeforeEach
+    void setUp() {
+        when(userDetailsService.loadUserByUsername("user"))
+                .thenReturn(new User("user", "", List.of(new SimpleGrantedAuthority("ROLE_USER"))));
+    }
 
     @Test
     void loginEndpoint_ShouldBePublic() throws Exception {
